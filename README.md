@@ -2,6 +2,11 @@
 
 following [実践入門 Kubernetesカスタムコントローラへの道](https://www.amazon.co.jp/-/en/gp/product/B0851QCR81/ref=ppx_yo_dt_b_d_asin_title_o00?ie=UTF8&psc=1)
 
+# Version
+
+- kubebuilder: 2.2.0
+- cert-manager: v0.11.0
+
 # 5章
 
 ## How to create
@@ -504,7 +509,129 @@ kubectl delete -k config/default/
 
 # 7章
 
-## Create webhook
+## Create Admission webhook
+
+### Create webhook
 
 ```
+kubebuilder create webhook --group samplecontroller --version v1alpha1 --kind Foo --defaulting --programmatic-validation 
+Writing scaffold for you to edit...
+api/v1alpha1/foo_webhook.go
+```
+
+### Implement Mutating and Validating
+
+change `api/v1alpha1/foo_webhook.go` and `api/v1alpha1/foo_types.go`
+
+### Execute
+
+1. prepare certificate
+
+```
+kubectl create ns cert-manager
+kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v0.11.0/cert-manager.yaml
+```
+
+```
+kubectl get pod -n cert-manager                                                                      
+NAME                                       READY   STATUS    RESTARTS   AGE
+cert-manager-7746446996-9clhd              1/1     Running   0          63s
+cert-manager-cainjector-59b88c94bc-t48p5   1/1     Running   0          64s
+cert-manager-webhook-6b8f46fbfc-lk56p      1/1     Running   0          63s
+```
+
+1. Build Docker image
+
+```
+export IMG=nakamasato/foo-controller:kubebuilder-webhook
+make docker-build
+```
+
+```
+make docker-push
+```
+
+1. Update `config/default/kustomization.yaml`
+
+1. Deploy
+
+```
+make deploy
+```
+
+1. Check certificate
+
+```
+kubectl get certificate -n foo-controller-kubebuilder-system
+NAME                                      READY   SECRET                AGE
+foo-controller-kubebuilder-serving-cert   True    webhook-server-cert   112s
+```
+
+```
+± kubectl get deploy -n foo-controller-kubebuilder-system
+NAME                                            READY   UP-TO-DATE   AVAILABLE   AGE
+foo-controller-kubebuilder-controller-manager   1/1     1            1           2m16s
+
+± kubectl get pod -n foo-controller-kubebuilder-system
+NAME                                                             READY   STATUS    RESTARTS   AGE
+foo-controller-kubebuilder-controller-manager-65dc97ddfd-lqdd2   2/2     Running   1          2m23s
+```
+
+1. Apply `config/samples/samplecontroller_v1alpha1_foo.yaml` without `replicas: 1`
+
+```
+kubectl apply -f config/samples/samplecontroller_v1alpha1_foo.yaml 
+foo.samplecontroller.k8s.io/foo-sample created
+```
+
+1. Check replica is 1
+
+```
+kubectl get foo foo-sample -o yaml | yq r - spec.replicas
+1
+```
+
+1. Apply `config/samples/samplecontroller_v1alpha1_foo.yaml` with too long name
+
+```yaml
+  deploymentName: aaaaaaaaaaaa...aaaaaaaaaaaaa # more than 253 letters
+```
+
+```
+kubectl apply -f config/samples/samplecontroller_v1alpha1_foo.yaml
+Error from server (Foo.samplecontroller.k8s.io "foo-sample" is invalid: spec.deploymentName: Invalid value: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa": must be no more than 253 characters): error when applying patch:
+{"metadata":{"annotations":{"kubectl.kubernetes.io/last-applied-configuration":"{\"apiVersion\":\"samplecontroller.k8s.io/v1alpha1\",\"kind\":\"Foo\",\"metadata\":{\"annotations\":{},\"name\":\"foo-sample\",\"namespace\":\"default\"},\"spec\":{\"deploymentName\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}}\n"}},"spec":{"deploymentName":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}}
+to:
+Resource: "samplecontroller.k8s.io/v1alpha1, Resource=foos", GroupVersionKind: "samplecontroller.k8s.io/v1alpha1, Kind=Foo"
+Name: "foo-sample", Namespace: "default"
+for: "config/samples/samplecontroller_v1alpha1_foo.yaml": admission webhook "vfoo.kb.io" denied the request: Foo.samplecontroller.k8s.io "foo-sample" is invalid: spec.deploymentName: Invalid value: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa": must be no more than 253 characters
+```
+
+### clean up
+
+```
+kubectl delete -f config/samples/samplecontroller_v1alpha1_foo.yaml 
+foo.samplecontroller.k8s.io "foo-sample" deleted
+```
+
+```
+kubectl delete -k config/default 
+namespace "foo-controller-kubebuilder-system" deleted
+Warning: apiextensions.k8s.io/v1beta1 CustomResourceDefinition is deprecated in v1.16+, unavailable in v1.22+; use apiextensions.k8s.io/v1 CustomResourceDefinition
+customresourcedefinition.apiextensions.k8s.io "foos.samplecontroller.k8s.io" deleted
+Warning: admissionregistration.k8s.io/v1beta1 MutatingWebhookConfiguration is deprecated in v1.16+, unavailable in v1.22+; use admissionregistration.k8s.io/v1 MutatingWebhookConfiguration
+mutatingwebhookconfiguration.admissionregistration.k8s.io "foo-controller-kubebuilder-mutating-webhook-configuration" deleted
+Warning: admissionregistration.k8s.io/v1beta1 ValidatingWebhookConfiguration is deprecated in v1.16+, unavailable in v1.22+; use admissionregistration.k8s.io/v1 ValidatingWebhookConfiguration
+validatingwebhookconfiguration.admissionregistration.k8s.io "foo-controller-kubebuilder-validating-webhook-configuration" deleted
+role.rbac.authorization.k8s.io "foo-controller-kubebuilder-leader-election-role" deleted
+clusterrole.rbac.authorization.k8s.io "foo-controller-kubebuilder-manager-role" deleted
+clusterrole.rbac.authorization.k8s.io "foo-controller-kubebuilder-proxy-role" deleted
+rolebinding.rbac.authorization.k8s.io "foo-controller-kubebuilder-leader-election-rolebinding" deleted
+clusterrolebinding.rbac.authorization.k8s.io "foo-controller-kubebuilder-manager-rolebinding" deleted
+clusterrolebinding.rbac.authorization.k8s.io "foo-controller-kubebuilder-proxy-rolebinding" deleted
+service "foo-controller-kubebuilder-controller-manager-metrics-service" deleted
+service "foo-controller-kubebuilder-webhook-service" deleted
+deployment.apps "foo-controller-kubebuilder-controller-manager" deleted
+certificate.cert-manager.io "foo-controller-kubebuilder-serving-cert" deleted
+issuer.cert-manager.io "foo-controller-kubebuilder-selfsigned-issuer" deleted
 ```
