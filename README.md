@@ -679,4 +679,95 @@ go build -o bin/manager main.go
 ```
 
 1. Add `// +kubebuilder:storageversion` to `alphav1/foo_types.go`
-1. Implement conversion
+1. Implement conversion -> Commit
+1. Change `Makefile`
+1. Build & Push
+
+```
+export IMG=nakamasato/foo-controller:kubebuilder-conversion
+make docker-build
+```
+
+```
+make docker-push
+```
+
+1. Deploy -> wait until controller manager starts up
+
+```
+make deploy
+go: creating new go.mod: module tmp
+go: found sigs.k8s.io/controller-tools/cmd/controller-gen in sigs.k8s.io/controller-tools v0.2.4
+/Users/masato-naka/go/bin/controller-gen "crd:preserveUnknownFields=false" rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=config/crd/bases
+cd config/manager && kustomize edit set image controller=nakamasato/foo-controller:kubebuilder-conversion
+kustomize build config/default | kubectl apply -f -
+namespace/foo-controller-kubebuilder-system created
+Warning: apiextensions.k8s.io/v1beta1 CustomResourceDefinition is deprecated in v1.16+, unavailable in v1.22+; use apiextensions.k8s.io/v1 CustomResourceDefinition
+customresourcedefinition.apiextensions.k8s.io/foos.samplecontroller.k8s.io created
+Warning: admissionregistration.k8s.io/v1beta1 MutatingWebhookConfiguration is deprecated in v1.16+, unavailable in v1.22+; use admissionregistration.k8s.io/v1 MutatingWebhookConfiguration
+mutatingwebhookconfiguration.admissionregistration.k8s.io/foo-controller-kubebuilder-mutating-webhook-configuration created
+Warning: admissionregistration.k8s.io/v1beta1 ValidatingWebhookConfiguration is deprecated in v1.16+, unavailable in v1.22+; use admissionregistration.k8s.io/v1 ValidatingWebhookConfiguration
+validatingwebhookconfiguration.admissionregistration.k8s.io/foo-controller-kubebuilder-validating-webhook-configuration created
+role.rbac.authorization.k8s.io/foo-controller-kubebuilder-leader-election-role created
+clusterrole.rbac.authorization.k8s.io/foo-controller-kubebuilder-manager-role created
+clusterrole.rbac.authorization.k8s.io/foo-controller-kubebuilder-proxy-role created
+rolebinding.rbac.authorization.k8s.io/foo-controller-kubebuilder-leader-election-rolebinding created
+clusterrolebinding.rbac.authorization.k8s.io/foo-controller-kubebuilder-manager-rolebinding created
+clusterrolebinding.rbac.authorization.k8s.io/foo-controller-kubebuilder-proxy-rolebinding created
+service/foo-controller-kubebuilder-controller-manager-metrics-service created
+service/foo-controller-kubebuilder-webhook-service created
+deployment.apps/foo-controller-kubebuilder-controller-manager created
+certificate.cert-manager.io/foo-controller-kubebuilder-serving-cert created
+issuer.cert-manager.io/foo-controller-kubebuilder-selfsigned-issuer created
+```
+
+1. Check
+
+```
+kubectl get deployment -n foo-controller-kubebuilder-system
+```
+
+```
+kubectl get pods -n foo-controller-kubebuilder-system
+```
+
+```
+kubectl logs -f -c manager -n foo-controller-kubebuilder-system
+...
+2020-11-28T07:51:59.198Z        INFO    controller-runtime.builder      conversion webhook enabled      {"object": {"metadata":{"creationTimestamp":null},"spec":{"deploymentName":"","replicas":null},"status":{"availableReplicas":0}}}
+...
+```
+
+1. Check
+
+Apply `betav1`
+
+```
+kubectl apply -f config/samples/samplecontroller_v1beta1_foo.yaml
+foo.samplecontroller.k8s.io/foo-sample created
+```
+
+confirm `foo` is copied from alphav1
+
+```
+kubectl get foo.v1beta1.samplecontroller.k8s.io foo-sample -o yaml | yq r - spec
+deploymentName: example-foo
+foo: example-foo
+replicas: 1
+```
+
+Check `alphav1` -> no foo
+
+```
+kubectl get foo.v1alpha1.samplecontroller.k8s.io foo-sample -o yaml | yq r - spec
+deploymentName: example-foo
+replicas: 1
+```
+
+### Clean up
+
+```
+kubectl delete -f config/samples/samplecontroller_v1beta1_foo.yaml 
+kubectl delete -k config/default
+kubectl delete -f https://github.com/jetstack/cert-manager/releases/download/v0.11.0/cert-manager.yaml
+```
