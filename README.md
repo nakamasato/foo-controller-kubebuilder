@@ -635,3 +635,48 @@ deployment.apps "foo-controller-kubebuilder-controller-manager" deleted
 certificate.cert-manager.io "foo-controller-kubebuilder-serving-cert" deleted
 issuer.cert-manager.io "foo-controller-kubebuilder-selfsigned-issuer" deleted
 ```
+
+## Create Conversion Webhook
+
+Conversion: API version compatibility
+
+apps/v1alphaのResourceがApplyされても、apps/v1のResourceがApplyされても、KuberntesのControllerがそれをReconcileし、同じ機能・効果を提供するObjectを保証してくれます。これは、Kubernetesが裏側でConversionを実行することで、Multi Version間の差分を吸収してくれているからです。
+
+### Overview
+
+1. Add new API version
+1. Implement Conversion
+1. Execute the operator
+
+### Add new API version
+
+```
+kubebuilder create api --group samplecontroller --version v1beta1 --kind Foo
+Create Resource [y/n]
+y
+Create Controller [y/n]
+n
+Writing scaffold for you to edit...
+api/v1beta1/foo_types.go
+Running make...
+go: creating new go.mod: module tmp
+go: found sigs.k8s.io/controller-tools/cmd/controller-gen in sigs.k8s.io/controller-tools v0.2.4
+/Users/masato-naka/go/bin/controller-gen object:headerFile=./hack/boilerplate.go.txt paths="./..."
+go fmt ./...
+go vet ./...
+go build -o bin/manager main.go
+```
+
+### Prepare
+
+1. Copy `v1alpha1/foo_types.go` to `v1beta1/foo_types.go`
+1. Add new field for conversion
+
+```
+	// +kubebuilder:validation:Optional
+	// the new field for conversion
+	Foo string `json:"foo"`
+```
+
+1. Add `// +kubebuilder:storageversion` to `alphav1/foo_types.go`
+1. Implement conversion
