@@ -9,6 +9,17 @@ following [実践入門 Kubernetesカスタムコントローラへの道](https
 
 # 5章
 
+## Overview
+
+1. Kubebuilｄer Projectの初期化
+2. KubebuilderでAPI ObjectとControllerのテンプレート作成
+3. `types.go`を編集して、API Objectを定義
+4. `controller.go`を編集して、Reconcileを実装
+5. `main.go`を編集して、main関数を修正
+6. 実行フェーズとして、Operatorを実際に動かす
+
+（実際にはテストが必要）
+
 ## How to create
 
 ### 1. Init
