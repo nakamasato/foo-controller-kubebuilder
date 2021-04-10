@@ -20,6 +20,13 @@ following [実践入門 Kubernetesカスタムコントローラへの道](https
 
 （実際にはテストが必要）
 
+## Reconcile logic
+
+1. Foo Objectを取得する
+2. Fooが過去に管理していた古いDeploymentが存在していたら削除する
+3. Fooが管理するDeploymentが存在していなければ作成し、存在していれば更新する
+4. Fooのステータスを更新する
+
 ## How to create
 
 ### 1. Init
