@@ -55,7 +55,8 @@ func (r *FooReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	// 2. Delete old Deployment if exists
+	// 2. Delete old Deployment if exists. In case we change DeploymentName in Foo resource, 
+	// a new Deployment will be created, so we need to clean up the old Deployment.
 	if err := r.cleanupOwnedResources(ctx, log, &foo); err != nil {
 		log.Error(err, "failed to clean up old Deployment resources for this Foo")
 		return ctrl.Result{}, err
@@ -112,7 +113,7 @@ func (r *FooReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return ctrl.Result{}, err
 	}
 
-	// 4. Update Foo's status
+	// 4. Update Foo's status. (AvailableReplicas)
 	var deployment appsv1.Deployment
 	var deploymentNamespacedName = client.ObjectKey{Namespace: req.Namespace, Name: foo.Spec.DeploymentName}
 	if err := r.Get(ctx, deploymentNamespacedName, &deployment); err != nil {
