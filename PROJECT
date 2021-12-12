@@ -1,0 +1,6 @@
+domain: example.com
+layout:
+- go.kubebuilder.io/v3
+projectName: foo-controller-kubebuilder
+repo: github.com/nakamasato/foo-controller-kubebuilder
+version: "3"
