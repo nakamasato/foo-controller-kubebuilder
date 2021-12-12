@@ -3,4 +3,5 @@ kind: Foo
 metadata:
   name: foo-sample
 spec:
-  # TODO(user): Add fields here
+  deploymentName: foo
+  replicas: 2
