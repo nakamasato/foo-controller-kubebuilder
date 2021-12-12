@@ -3,4 +3,14 @@ layout:
 - go.kubebuilder.io/v3
 projectName: foo-controller-kubebuilder
 repo: github.com/nakamasato/foo-controller-kubebuilder
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: example.com
+  group: samplecontroller
+  kind: Foo
+  path: github.com/nakamasato/foo-controller-kubebuilder/api/v1alpha1
+  version: v1alpha1
 version: "3"
