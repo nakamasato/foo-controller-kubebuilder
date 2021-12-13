@@ -17,7 +17,10 @@ limitations under the License.
 package v1alpha1
 
 import (
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/util/validation/field"
 	ctrl "sigs.k8s.io/controller-runtime"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
@@ -42,7 +45,10 @@ var _ webhook.Defaulter = &Foo{}
 func (r *Foo) Default() {
 	foolog.Info("default", "name", r.Name)
 
-	// TODO(user): fill in your defaulting logic.
+	if r.Spec.Replicas == nil {
+		r.Spec.Replicas = new(int32)
+		*r.Spec.Replicas = 1
+	}
 }
 
 // TODO(user): change verbs to "verbs=create;update;delete" if you want to enable deletion validation.
@@ -54,16 +60,14 @@ var _ webhook.Validator = &Foo{}
 func (r *Foo) ValidateCreate() error {
 	foolog.Info("validate create", "name", r.Name)
 
-	// TODO(user): fill in your validation logic upon object creation.
-	return nil
+	return r.validateFoo()
 }
 
 // ValidateUpdate implements webhook.Validator so a webhook will be registered for the type
 func (r *Foo) ValidateUpdate(old runtime.Object) error {
 	foolog.Info("validate update", "name", r.Name)
 
-	// TODO(user): fill in your validation logic upon object update.
-	return nil
+	return r.validateFoo()
 }
 
 // ValidateDelete implements webhook.Validator so a webhook will be registered for the type
@@ -72,4 +76,23 @@ func (r *Foo) ValidateDelete() error {
 
 	// TODO(user): fill in your validation logic upon object deletion.
 	return nil
+}
+
+func (r *Foo) validateDeploymentName() *field.Error {
+	// depoymentName must be no more than 253 characters.
+	if len(r.Spec.DeploymentName) > 253 {
+		return field.Invalid(field.NewPath("spec").Child("deploymentName"), r.Spec.DeploymentName, "must be no more than 253 characters")
+	}
+	return nil
+}
+
+func (r *Foo) validateFoo() error {
+	var allErrs field.ErrorList
+	if err := r.validateDeploymentName(); err != nil {
+		allErrs = append(allErrs, err)
+	}
+	if len(allErrs) == 0 {
+		return nil
+	}
+	return apierrors.NewInvalid(schema.GroupKind{Group: "samplecontroller.example.com", Kind: "Foo"}, r.Name, allErrs)
 }
