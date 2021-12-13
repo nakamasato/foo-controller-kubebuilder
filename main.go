@@ -33,6 +33,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	samplecontrollerv1alpha1 "github.com/nakamasato/foo-controller-kubebuilder/api/v1alpha1"
+	samplecontrollerv1beta1 "github.com/nakamasato/foo-controller-kubebuilder/api/v1beta1"
 	"github.com/nakamasato/foo-controller-kubebuilder/controllers"
 	//+kubebuilder:scaffold:imports
 )
@@ -46,6 +47,7 @@ func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
 	utilruntime.Must(samplecontrollerv1alpha1.AddToScheme(scheme))
+	utilruntime.Must(samplecontrollerv1beta1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
 }
 

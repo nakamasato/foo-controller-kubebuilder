@@ -17,4 +17,12 @@ resources:
     defaulting: true
     validation: true
     webhookVersion: v1
+- api:
+    crdVersion: v1
+    namespaced: true
+  domain: example.com
+  group: samplecontroller
+  kind: Foo
+  path: github.com/nakamasato/foo-controller-kubebuilder/api/v1beta1
+  version: v1beta1
 version: "3"
