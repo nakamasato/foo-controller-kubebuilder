@@ -13,4 +13,4 @@ kind: Kustomization
 images:
 - name: controller
   newName: nakamasato/foo-controller
-  newTag: kubebuilder-webhook
+  newTag: kubebuilder-conversion
