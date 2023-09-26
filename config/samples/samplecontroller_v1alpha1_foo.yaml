@@ -1,7 +1,0 @@
-apiVersion: samplecontroller.example.com/v1alpha1
-kind: Foo
-metadata:
-  name: foo-sample
-spec:
-  deploymentName: sample-foo
-  # replicas: 2 # to check default admission webhook
