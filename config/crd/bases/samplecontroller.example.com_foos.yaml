@@ -34,13 +34,25 @@ spec:
           spec:
             description: FooSpec defines the desired state of Foo
             properties:
-              foo:
-                description: Foo is an example field of Foo. Edit foo_types.go to
-                  remove/update
+              deploymentName:
+                format: string
                 type: string
+              replicas:
+                description: the replicas of deployment which is owned by foo
+                format: int32
+                minimum: 0
+                type: integer
+            required:
+            - deploymentName
+            - replicas
             type: object
           status:
             description: FooStatus defines the observed state of Foo
+            properties:
+              availableReplicas:
+                description: this is equal deployment.status.availableReplicas
+                format: int32
+                type: integer
             type: object
         type: object
     served: true
