@@ -1,0 +1,12 @@
+apiVersion: samplecontroller.example.com/v1alpha1
+kind: Foo
+metadata:
+  labels:
+    app.kubernetes.io/name: foo
+    app.kubernetes.io/instance: foo-sample
+    app.kubernetes.io/part-of: foo-controller-kubebuilder
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: foo-controller-kubebuilder
+  name: foo-sample
+spec:
+  # TODO(user): Add fields here
