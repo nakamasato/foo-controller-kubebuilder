@@ -1,5 +1,5 @@
 /*
-Copyright 2021 nakamasato.
+Copyright 2023 nakamasato.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ type FooSpec struct {
 	DeploymentName string `json:"deploymentName"`
 
 	// +kubebuilder:validation:Optional
+	// +kubebuilder:validation:Minimum=0
 
 	// the replicas of deployment which is owned by foo
 	Replicas *int32 `json:"replicas"`

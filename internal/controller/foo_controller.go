@@ -1,5 +1,5 @@
 /*
-Copyright 2021 nakamasato.
+Copyright 2023 nakamasato.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package controllers
+package controller
 
 import (
 	"context"
@@ -29,7 +29,13 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	"github.com/go-logr/logr"
+
 	samplecontrollerv1alpha1 "github.com/nakamasato/foo-controller-kubebuilder/api/v1alpha1"
+)
+
+var (
+	deploymentOwnerKey = ".metadata.controller"
+	apiGVStr           = samplecontrollerv1alpha1.GroupVersion.String()
 )
 
 // FooReconciler reconciles a Foo object
@@ -53,7 +59,7 @@ type FooReconciler struct {
 // the user.
 //
 // For more details, check Reconcile and its Result here:
-// - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.10.0/pkg/reconcile
+// - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.16.0/pkg/reconcile
 func (r *FooReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := log.FromContext(ctx)
 
@@ -132,32 +138,6 @@ func (r *FooReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 	return ctrl.Result{}, nil
 }
 
-var (
-	deploymentOwnerKey = ".metadata.controller"
-	apiGVStr           = samplecontrollerv1alpha1.GroupVersion.String()
-)
-
-// SetupWithManager sets up the controller with the Manager.
-func (r *FooReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &appsv1.Deployment{}, deploymentOwnerKey, func(o client.Object) []string {
-		deployment := o.(*appsv1.Deployment)
-		owner := metav1.GetControllerOf(deployment)
-		if owner == nil {
-			return nil
-		}
-		if owner.APIVersion != apiGVStr || owner.Kind != "Foo" {
-			return nil
-		}
-		return []string{owner.Name}
-	}); err != nil {
-		return err
-	}
-	return ctrl.NewControllerManagedBy(mgr).
-		For(&samplecontrollerv1alpha1.Foo{}).
-		Owns(&appsv1.Deployment{}).
-		Complete(r)
-}
-
 func (r *FooReconciler) cleanupOwnedResources(ctx context.Context, log logr.Logger, foo *samplecontrollerv1alpha1.Foo) error {
 	log.Info("finding existing Deployments for Foo resource")
 
@@ -184,4 +164,25 @@ func (r *FooReconciler) cleanupOwnedResources(ctx context.Context, log logr.Logg
 		r.Recorder.Eventf(foo, corev1.EventTypeNormal, "Deleted", "Deleted deployment %q", deployment.Name)
 	}
 	return nil
+}
+
+// SetupWithManager sets up the controller with the Manager.
+func (r *FooReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &appsv1.Deployment{}, deploymentOwnerKey, func(o client.Object) []string {
+		deployment := o.(*appsv1.Deployment)
+		owner := metav1.GetControllerOf(deployment)
+		if owner == nil {
+			return nil
+		}
+		if owner.APIVersion != apiGVStr || owner.Kind != "Foo" {
+			return nil
+		}
+		return []string{owner.Name}
+	}); err != nil {
+		return err
+	}
+	return ctrl.NewControllerManagedBy(mgr).
+		For(&samplecontrollerv1alpha1.Foo{}).
+		Owns(&appsv1.Deployment{}).
+		Complete(r)
 }

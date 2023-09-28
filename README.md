@@ -5,16 +5,16 @@
 
 ## Version
 
-- go: 1.17.3
-- kubebuilder: 3.2.0
-- kustomize: v4.4.0
-- cert-manager: v1.6.1
+- go: go1.20.6
+- kubebuilder: 3.12.0
+- kustomize: v5.1.1
+- cert-manager: v1.13.0
 
 ## Prerequisite
 
 ```
 go version
-go version go1.17.3 darwin/amd64
+go version go1.20.6 darwin/amd64
 ```
 
 install kubebuilder
@@ -26,14 +26,7 @@ chmod +x kubebuilder && mv kubebuilder /usr/local/bin/
 
 ```
 kubebuilder version
-Version: main.version{KubeBuilderVersion:"3.2.0", KubernetesVendor:"1.22.1", GitCommit:"b7a730c84495122a14a0faff95e9e9615fffbfc5", BuildDate:"2021-10-29T18:32:16Z", GoOs:"darwin", GoArch:"amd64"}
-```
-
-kustomize
-
-```
-kustomize version
-{Version:kustomize/v4.4.0 GitCommit:63ec6bdb3d737a7c66901828c5743656c49b60e1 BuildDate:2021-09-27T16:13:36Z GoOs:darwin GoArch:amd64}
+Version: main.version{KubeBuilderVersion:"3.12.0", KubernetesVendor:"1.27.1", GitCommit:"b48f95cd5384eadcdfd02a47a02910f72ddc7ea8", BuildDate:"2023-09-06T06:04:11Z", GoOs:"darwin", GoArch:"arm64"}
 ```
 
 ## Overview
@@ -74,13 +67,13 @@ this command generates `go.mod`
 ```
 module github.com/nakamasato/foo-controller-kubebuilder
 
-go 1.17
+go 1.20
 ```
 
-Initialize a kubebuilder project
+Initialize a kubebuilder project with plugin `go/v4`
 
 ```
-kubebuilder init --plugins go/v3 --domain example.com --owner nakamasato
+kubebuilder init --domain example.com --owner nakamasato
 ```
 
 <details><summary>tree</summary>
@@ -91,13 +84,15 @@ tree
 ├── Dockerfile
 ├── Makefile
 ├── PROJECT
+├── README.md
+├── cmd
+│   └── main.go
 ├── config
 │   ├── default
 │   │   ├── kustomization.yaml
 │   │   ├── manager_auth_proxy_patch.yaml
 │   │   └── manager_config_patch.yaml
 │   ├── manager
-│   │   ├── controller_manager_config.yaml
 │   │   ├── kustomization.yaml
 │   │   └── manager.yaml
 │   ├── prometheus
@@ -115,11 +110,10 @@ tree
 │       └── service_account.yaml
 ├── go.mod
 ├── go.sum
-├── hack
-│   └── boilerplate.go.txt
-└── main.go
+└── hack
+    └── boilerplate.go.txt
 
-6 directories, 24 files
+7 directories, 24 files
 ```
 
 </details>
@@ -133,60 +127,30 @@ kubebuilder create api --group samplecontroller --version v1alpha1 --kind Foo --
 <details><summary>result</summary>
 
 ```bash
-Writing kustomize manifests for you to edit...
-Writing scaffold for you to edit...
-api/v1alpha1/foo_types.go
-controllers/foo_controller.go
-Update dependencies:
+INFO[0000] Writing kustomize manifests for you to edit...
+INFO[0000] Writing scaffold for you to edit...
+INFO[0000] api/v1alpha1/foo_types.go
+INFO[0000] api/v1alpha1/groupversion_info.go
+INFO[0000] internal/controller/suite_test.go
+INFO[0000] internal/controller/foo_controller.go
+INFO[0000] Update dependencies:
 $ go mod tidy
-Running make:
+INFO[0000] Running make:
 $ make generate
-go: creating new go.mod: module tmp
-Downloading sigs.k8s.io/controller-tools/cmd/controller-gen@v0.7.0
-go get: installing executables with 'go get' in module mode is deprecated.
-        To adjust and download dependencies of the current module, use 'go get -d'.
-        To install using requirements of the current module, use 'go install'.
-        To install ignoring the current module, use 'go install' with a version,
-        like 'go install example.com/cmd@latest'.
-        For more information, see https://golang.org/doc/go-get-install-deprecation
-        or run 'go help get' or 'go help install'.
-go get: added github.com/fatih/color v1.12.0
-go get: added github.com/go-logr/logr v0.4.0
-go get: added github.com/gobuffalo/flect v0.2.3
-go get: added github.com/gogo/protobuf v1.3.2
-go get: added github.com/google/go-cmp v0.5.6
-go get: added github.com/google/gofuzz v1.1.0
-go get: added github.com/inconshreveable/mousetrap v1.0.0
-go get: added github.com/json-iterator/go v1.1.11
-go get: added github.com/mattn/go-colorable v0.1.8
-go get: added github.com/mattn/go-isatty v0.0.12
-go get: added github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd
-go get: added github.com/modern-go/reflect2 v1.0.1
-go get: added github.com/spf13/cobra v1.2.1
-go get: added github.com/spf13/pflag v1.0.5
-go get: added golang.org/x/mod v0.4.2
-go get: added golang.org/x/net v0.0.0-20210520170846-37e1c6afe023
-go get: added golang.org/x/sys v0.0.0-20210616094352-59db8d763f22
-go get: added golang.org/x/text v0.3.6
-go get: added golang.org/x/tools v0.1.5
-go get: added golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1
-go get: added gopkg.in/inf.v0 v0.9.1
-go get: added gopkg.in/yaml.v2 v2.4.0
-go get: added gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
-go get: added k8s.io/api v0.22.2
-go get: added k8s.io/apiextensions-apiserver v0.22.2
-go get: added k8s.io/apimachinery v0.22.2
-go get: added k8s.io/klog/v2 v2.9.0
-go get: added k8s.io/utils v0.0.0-20210819203725-bdf08cb9a70a
-go get: added sigs.k8s.io/controller-tools v0.7.0
-go get: added sigs.k8s.io/structured-merge-diff/v4 v4.1.2
-go get: added sigs.k8s.io/yaml v1.2.0
-/Users/masato-naka/repos/nakamasato/foo-controller-kubebuilder/bin/controller-gen object:headerFile="hack/boilerplate.go.txt" paths="./..."
+mkdir -p /Users/m.naka/repos/nakamasato/foo-controller-kubebuilder/bin
+test -s /Users/m.naka/repos/nakamasato/foo-controller-kubebuilder/bin/controller-gen && /Users/m.naka/repos/nakamasato/foo-controller-kubebuilder/bin/controller-gen --version | grep -q v0.13.0 || \
+        GOBIN=/Users/m.naka/repos/nakamasato/foo-controller-kubebuilder/bin go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.13.0
+go: downloading sigs.k8s.io/controller-tools v0.13.0
+/Users/m.naka/repos/nakamasato/foo-controller-kubebuilder/bin/controller-gen object:headerFile="hack/boilerplate.go.txt" paths="./..."
 Next: implement your new API and generate the manifests (e.g. CRDs,CRs) with:
 $ make manifests
 ```
 
 </details>
+
+```
+make manifests
+```
 
 ### 3. Define API resource `Foo` (types.go)
 
@@ -233,16 +197,19 @@ If you see the following logs, it's running successfully.
 ```
 go fmt ./...
 go vet ./...
-go run ./main.go
-2021-12-13T06:32:46.224+0900    INFO    controller-runtime.metrics      metrics server is starting to listen    {"addr": ":8080"}
-2021-12-13T06:32:46.225+0900    INFO    setup   starting manager
-2021-12-13T06:32:46.226+0900    INFO    starting metrics server {"path": "/metrics"}
-2021-12-13T06:32:46.226+0900    INFO    controller.foo  Starting EventSource    {"reconciler group": "samplecontroller.example.com", "reconciler kind": "Foo", "source": "kind source: /, Kind="}
-2021-12-13T06:32:46.226+0900    INFO    controller.foo  Starting Controller     {"reconciler group": "samplecontroller.example.com", "reconciler kind": "Foo"}
-2021-12-13T06:32:46.327+0900    INFO    controller.foo  Starting workers        {"reconciler group": "samplecontroller.example.com", "reconciler kind": "Foo", "worker count": 1}
+go run ./cmd/main.go
+2023-09-27T07:42:37+09:00       INFO    setup   starting manager
+2023-09-27T07:42:37+09:00       INFO    starting server {"kind": "health probe", "addr": "[::]:8081"}
+2023-09-27T07:42:37+09:00       INFO    controller-runtime.metrics      Starting metrics server
+2023-09-27T07:42:37+09:00       INFO    controller-runtime.metrics      Serving metrics server  {"bindAddress": ":8080", "secure": false}
+2023-09-27T07:42:37+09:00       INFO    Starting EventSource    {"controller": "foo", "controllerGroup": "samplecontroller.example.com", "controllerKind": "Foo", "source": "kind source: *v1alpha1.Foo"}
+2023-09-27T07:42:37+09:00       INFO    Starting Controller     {"controller": "foo", "controllerGroup": "samplecontroller.example.com", "controllerKind": "Foo"}
+2023-09-27T07:42:37+09:00       INFO    Starting workers        {"controller": "foo", "controllerGroup": "samplecontroller.example.com", "controllerKind": "Foo", "worker count": 1}
 ```
 
 ### 4. Implement reconciliation logic (foo_controller.go and main.go)
+
+`internal/controller/foo_controller.go`:
 
 ```go
 import (
@@ -262,17 +229,20 @@ import (
 )
 ```
 
-```go
-type FooReconciler struct {
-	client.Client
-	Scheme   *runtime.Scheme
-	Recorder record.EventRecorder
-}
+```diff
+  type FooReconciler struct {
+  	client.Client
+  	Scheme   *runtime.Scheme
++  	Recorder record.EventRecorder
+  }
 ```
 
-```go
-//+kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update;delete
-//+kubebuilder:rbac:groups="",resources=events,verbs=create;patch
+```diff
+  //+kubebuilder:rbac:groups=samplecontroller.example.com,resources=foos,verbs=get;list;watch;create;update;patch;delete
+  //+kubebuilder:rbac:groups=samplecontroller.example.com,resources=foos/status,verbs=get;update;patch
+  //+kubebuilder:rbac:groups=samplecontroller.example.com,resources=foos/finalizers,verbs=update
++ //+kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update;delete
++ //+kubebuilder:rbac:groups="",resources=events,verbs=create;patch
 ```
 
 ```go
@@ -411,20 +381,24 @@ func (r *FooReconciler) SetupWithManager(mgr ctrl.Manager) error {
 }
 ```
 
-Update `main.go`
+Update `cmd/main.go`
 
-```go
-if err = (&controllers.FooReconciler{
-    Client:   mgr.GetClient(),
-    Scheme:   mgr.GetScheme(),
-    Recorder: mgr.GetEventRecorderFor("foo-controller"),
-}).SetupWithManager(mgr); err != nil {
-    setupLog.Error(err, "unable to create controller", "controller", "Foo")
-    os.Exit(1)
-}
+```diff
+  if err = (&controllers.FooReconciler{
+      Client:   mgr.GetClient(),
+      Scheme:   mgr.GetScheme(),
++     Recorder: mgr.GetEventRecorderFor("foo-controller"),
+  }).SetupWithManager(mgr); err != nil {
+      setupLog.Error(err, "unable to create controller", "controller", "Foo")
+      os.Exit(1)
+  }
 ```
 
-### 5. Run the operator
+```
+make fmt
+```
+
+Run the operator
 
 ```
 make install
@@ -445,6 +419,22 @@ make run
 
 Create sample `Foo`
 
+```yaml
+apiVersion: samplecontroller.example.com/v1alpha1
+kind: Foo
+metadata:
+  labels:
+    app.kubernetes.io/name: foo
+    app.kubernetes.io/instance: foo-sample
+    app.kubernetes.io/part-of: foo-controller-kubebuilder
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: foo-controller-kubebuilder
+  name: foo-sample
+spec:
+  deploymentName: "foo-sample"
+  replicas: 2
+```
+
 ```
 kubectl apply -f config/samples/samplecontroller_v1alpha1_foo.yaml
 ```
@@ -453,14 +443,14 @@ Result:
 
 ```
 kubectl get deploy
-NAME   READY   UP-TO-DATE   AVAILABLE   AGE
-foo    2/2     2            2           9s
+NAME         READY   UP-TO-DATE   AVAILABLE   AGE
+foo-sample   2/2     2            2           21s
 ```
 
 ```
 kubectl get event | grep foo/
-34s         Normal   Updated             foo/foo-sample              Update foo.status.AvailableReplicas: 1
-32s         Normal   Updated             foo/foo-sample              Update foo.status.AvailableReplicas: 2
+30s         Normal   Updated                   foo/foo-sample                     Update foo.status.AvailableReplicas: 1
+28s         Normal   Updated                   foo/foo-sample                     Update foo.status.AvailableReplicas: 2
 ```
 
 Clean up
@@ -498,11 +488,14 @@ make deploy
 <details>
 
 ```bash
-/Users/masato-naka/repos/nakamasato/foo-controller-kubebuilder/bin/controller-gen rbac:roleName=manager-role crd webhook paths="./..." output:crd:artifacts:config=config/crd/bases
-cd config/manager && /Users/masato-naka/repos/nakamasato/foo-controller-kubebuilder/bin/kustomize edit set image controller=nakamasato/foo-controller:kubebuilder
-/Users/masato-naka/repos/nakamasato/foo-controller-kubebuilder/bin/kustomize build config/default | kubectl apply -f -
+test -s /Users/m.naka/repos/nakamasato/foo-controller-kubebuilder/bin/controller-gen && /Users/m.naka/repos/nakamasato/foo-controller-kubebuilder/bin/controller-gen --version | grep -q v0.13.0 || \
+        GOBIN=/Users/m.naka/repos/nakamasato/foo-controller-kubebuilder/bin go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.13.0
+/Users/m.naka/repos/nakamasato/foo-controller-kubebuilder/bin/controller-gen rbac:roleName=manager-role crd webhook paths="./..." output:crd:artifacts:config=config/crd/bases
+cd config/manager && /Users/m.naka/repos/nakamasato/foo-controller-kubebuilder/bin/kustomize edit set image controller=nakamasato/foo-controller:kubebuilder
+/Users/m.naka/repos/nakamasato/foo-controller-kubebuilder/bin/kustomize build config/default | kubectl apply -f -
+# Warning: 'patchesStrategicMerge' is deprecated. Please use 'patches' instead. Run 'kustomize edit fix' to update your Kustomization automatically.
 namespace/foo-controller-kubebuilder-system created
-customresourcedefinition.apiextensions.k8s.io/foos.samplecontroller.example.com configured
+customresourcedefinition.apiextensions.k8s.io/foos.samplecontroller.example.com unchanged
 serviceaccount/foo-controller-kubebuilder-controller-manager created
 role.rbac.authorization.k8s.io/foo-controller-kubebuilder-leader-election-role created
 clusterrole.rbac.authorization.k8s.io/foo-controller-kubebuilder-manager-role created
@@ -511,7 +504,6 @@ clusterrole.rbac.authorization.k8s.io/foo-controller-kubebuilder-proxy-role crea
 rolebinding.rbac.authorization.k8s.io/foo-controller-kubebuilder-leader-election-rolebinding created
 clusterrolebinding.rbac.authorization.k8s.io/foo-controller-kubebuilder-manager-rolebinding created
 clusterrolebinding.rbac.authorization.k8s.io/foo-controller-kubebuilder-proxy-rolebinding created
-configmap/foo-controller-kubebuilder-manager-config created
 service/foo-controller-kubebuilder-controller-manager-metrics-service created
 deployment.apps/foo-controller-kubebuilder-controller-manager created
 ```
@@ -533,8 +525,8 @@ check deployment
 
 ```
 kubectl get deploy
-NAME   READY   UP-TO-DATE   AVAILABLE   AGE
-foo    2/2     2            2           13s
+NAME         READY   UP-TO-DATE   AVAILABLE   AGE
+foo-sample   2/2     2            2           7s
 ```
 
 clean up
@@ -557,30 +549,38 @@ kubebuilder create webhook --group samplecontroller --version v1alpha1 --kind Fo
 <details><summary>result</summary>
 
 ```
-Writing kustomize manifests for you to edit...
-Writing scaffold for you to edit...
-api/v1alpha1/foo_webhook.go
-Update dependencies:
+INFO[0000] Writing kustomize manifests for you to edit...
+INFO[0000] Writing scaffold for you to edit...
+INFO[0000] api/v1alpha1/foo_webhook.go
+INFO[0000] api/v1alpha1/webhook_suite_test.go
+INFO[0007] Update dependencies:
 $ go mod tidy
-Running make:
+INFO[0008] Running make:
 $ make generate
-/Users/masato-naka/repos/nakamasato/foo-controller-kubebuilder/bin/controller-gen object:headerFile="hack/boilerplate.go.txt" paths="./..."
+test -s /Users/m.naka/repos/nakamasato/foo-controller-kubebuilder/bin/controller-gen && /Users/m.naka/repos/nakamasato/foo-controller-kubebuilder/bin/controller-gen --version | grep -q v0.13.0 || \
+        GOBIN=/Users/m.naka/repos/nakamasato/foo-controller-kubebuilder/bin go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.13.0
+/Users/m.naka/repos/nakamasato/foo-controller-kubebuilder/bin/controller-gen object:headerFile="hack/boilerplate.go.txt" paths="./..."
 Next: implement your new Webhook and generate the manifests with:
 $ make manifests
 ```
 
 </details>
 
+```
+make manifests
+```
+
 ## 6. Implement admission webhook
 ### 6.1. default
 
 Set replicas to optional in `api/v1alpha1/foo_types.go`
 
-```go
-    // +kubebuilder:validation:Optional
+```diff
+-  	// +kubebuilder:validation:Required
++  	// +kubebuilder:validation:Optional
 
-	// the replicas of deployment which is owned by foo
-	Replicas *int32 `json:"replicas"`
+  	// the replicas of deployment which is owned by foo
+  	Replicas *int32 `json:"replicas"`
 ```
 
 Default: `api/v1alpha1/foo_webhook.go`
@@ -600,6 +600,37 @@ func (r *Foo) Default() {
 
 Validation: deploymentName must not be no more than 253 characters
 
+
+We'll implement the [Validator](https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.16.2/pkg/webhook/admission#Validator) interface:
+
+```go
+type Validator interface {
+	runtime.Object
+
+	// ValidateCreate validates the object on creation.
+	// The optional warnings will be added to the response as warning messages.
+	// Return an error if the object is invalid.
+	ValidateCreate() (warnings Warnings, err error)
+
+	// ValidateUpdate validates the object on update. The oldObj is the object before the update.
+	// The optional warnings will be added to the response as warning messages.
+	// Return an error if the object is invalid.
+	ValidateUpdate(old runtime.Object) (warnings Warnings, err error)
+
+	// ValidateDelete validates the object on deletion.
+	// The optional warnings will be added to the response as warning messages.
+	// Return an error if the object is invalid.
+	ValidateDelete() (warnings Warnings, err error)
+}
+```
+
+The return value was updated in [controller-runtime@v0.15.0](https://github.com/kubernetes-sigs/controller-runtime/releases/tag/v0.15.0) ([⚠️ feat: new features about support warning with webhook #2014](https://github.com/kubernetes-sigs/controller-runtime/pull/2014)) from [[Feature Request]: Support "Warning" for Validation Webhook #1896](https://github.com/kubernetes-sigs/controller-runtime/issues/1896)
+
+This is because Kubernets supports `warning` message in response for Admission webhook since [1.19](https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG/CHANGELOG-1.19.md#deprecation-warnings) [ref](https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/#response):
+
+> Admission webhooks can optionally return warning messages that are returned to the requesting client in HTTP Warning headers with a warning code of 299. Warnings can be sent with allowed or rejected admission responses.
+
+
 You can use `// +kubebuilder:validation:MaxLength` with a maker.
 
 ```go
@@ -612,14 +643,14 @@ import (
 )
 ...
 // ValidateCreate implements webhook.Validator so a webhook will be registered for the type
-func (r *Foo) ValidateCreate() error {
+func (r *Foo) ValidateCreate() (admission.Warnings, error) {
 	foolog.Info("validate create", "name", r.Name)
 
 	return r.validateFoo()
 }
 
 // ValidateUpdate implements webhook.Validator so a webhook will be registered for the type
-func (r *Foo) ValidateUpdate(old runtime.Object) error {
+func (r *Foo) ValidateUpdate(old runtime.Object) (admission.Warnings, error) {
 	foolog.Info("validate update", "name", r.Name)
 
 	return r.validateFoo()
@@ -633,15 +664,15 @@ func (r *Foo) validateDeploymentName() *field.Error {
 	return nil
 }
 
-func (r *Foo) validateFoo() error {
+func (r *Foo) validateFoo() (admission.Warnings, error) {
 	var allErrs field.ErrorList
 	if err := r.validateDeploymentName(); err != nil {
 		allErrs = append(allErrs, err)
 	}
 	if len(allErrs) == 0 {
-		return nil
+		return nil, nil
 	}
-	return apierrors.NewInvalid(schema.GroupKind{Group: "samplecontroller.example.com", Kind: "Foo"}, r.Name, allErrs)
+	return nil, apierrors.NewInvalid(schema.GroupKind{Group: "samplecontroller.example.com", Kind: "Foo"}, r.Name, allErrs)
 }
 ```
 
@@ -649,18 +680,18 @@ func (r *Foo) validateFoo() error {
 
 1. prepare certificate
 
-```
-kubectl create ns cert-manager
-kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.6.1/cert-manager.yaml
-```
+    ```
+    kubectl create ns cert-manager
+    kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.13.0/cert-manager.yaml
+    ```
 
-```
-kubectl get pod -n cert-manager
-NAME                                      READY   STATUS    RESTARTS   AGE
-cert-manager-55658cdf68-5w58w             1/1     Running   0          39s
-cert-manager-cainjector-967788869-p4psd   1/1     Running   0          39s
-cert-manager-webhook-6668fbb57d-44sjk     1/1     Running   0          39s
-```
+    ```
+    kubectl get pod -n cert-manager
+    NAME                                      READY   STATUS    RESTARTS   AGE
+    cert-manager-55658cdf68-5w58w             1/1     Running   0          39s
+    cert-manager-cainjector-967788869-p4psd   1/1     Running   0          39s
+    cert-manager-webhook-6668fbb57d-44sjk     1/1     Running   0          39s
+    ```
 
 1. Build Docker image
 
@@ -671,45 +702,137 @@ cert-manager-webhook-6668fbb57d-44sjk     1/1     Running   0          39s
 
 1. Update `config/default/kustomization.yaml`
 
-    Uncomment the followings:
+    Uncomment the codes for `[WEBHOOK]` and `[CERTMANAGER]`:
 
     ```yaml
-    bases:
+    resources:
+    - ../crd
+    - ../rbac
+    - ../manager
+    # [WEBHOOK] To enable webhook, uncomment all the sections with [WEBHOOK] prefix including the one in
+    # crd/kustomization.yaml
     - ../webhook
+    # [CERTMANAGER] To enable cert-manager, uncomment all sections with 'CERTMANAGER'. 'WEBHOOK' components are required.
     - ../certmanager
-    ...
+    # [PROMETHEUS] To enable prometheus monitor, uncomment all sections with 'PROMETHEUS'.
+    #- ../prometheus
+
     patchesStrategicMerge:
+    # Protect the /metrics endpoint by putting it behind auth.
+    # If you want your controller-manager to expose the /metrics
+    # endpoint w/o any authn/z, please comment the following line.
+    - manager_auth_proxy_patch.yaml
+
+
+
+    # [WEBHOOK] To enable webhook, uncomment all the sections with [WEBHOOK] prefix including the one in
+    # crd/kustomization.yaml
     - manager_webhook_patch.yaml
+
+    # [CERTMANAGER] To enable cert-manager, uncomment all sections with 'CERTMANAGER'.
+    # Uncomment 'CERTMANAGER' sections in crd/kustomization.yaml to enable the CA injection in the admission webhooks.
+    # 'CERTMANAGER' needs to be enabled to use ca injection
     - webhookcainjection_patch.yaml
-    ...
-    vars:
-    # [CERTMANAGER] To enable cert-manager, uncomment all sections with 'CERTMANAGER'     prefix.
-    - name: CERTIFICATE_NAMESPACE # namespace of the certificate CR
-      objref:
-        kind: Certificate
-        group: cert-manager.io
-        version: v1
-        name: serving-cert # this name should match the one in certificate.yaml
-      fieldref:
-        fieldpath: metadata.namespace
-    - name: CERTIFICATE_NAME
-      objref:
-        kind: Certificate
-        group: cert-manager.io
-        version: v1
-        name: serving-cert # this name should match the one in certificate.yaml
-    - name: SERVICE_NAMESPACE # namespace of the service
-      objref:
-        kind: Service
-        version: v1
-        name: webhook-service
-      fieldref:
-        fieldpath: metadata.namespace
-    - name: SERVICE_NAME
-      objref:
-        kind: Service
-        version: v1
-        name: webhook-service
+
+    # [CERTMANAGER] To enable cert-manager, uncomment all sections with 'CERTMANAGER' prefix.
+    # Uncomment the following replacements to add the cert-manager CA injection annotations
+    replacements:
+     - source: # Add cert-manager annotation to ValidatingWebhookConfiguration, MutatingWebhookConfiguration and CRDs
+         kind: Certificate
+         group: cert-manager.io
+         version: v1
+         name: serving-cert # this name should match the one in certificate.yaml
+         fieldPath: .metadata.namespace # namespace of the certificate CR
+       targets:
+         - select:
+             kind: ValidatingWebhookConfiguration
+           fieldPaths:
+             - .metadata.annotations.[cert-manager.io/inject-ca-from]
+           options:
+             delimiter: '/'
+             index: 0
+             create: true
+         - select:
+             kind: MutatingWebhookConfiguration
+           fieldPaths:
+             - .metadata.annotations.[cert-manager.io/inject-ca-from]
+           options:
+             delimiter: '/'
+             index: 0
+             create: true
+         - select:
+             kind: CustomResourceDefinition
+           fieldPaths:
+             - .metadata.annotations.[cert-manager.io/inject-ca-from]
+           options:
+             delimiter: '/'
+             index: 0
+             create: true
+     - source:
+         kind: Certificate
+         group: cert-manager.io
+         version: v1
+         name: serving-cert # this name should match the one in certificate.yaml
+         fieldPath: .metadata.name
+       targets:
+         - select:
+             kind: ValidatingWebhookConfiguration
+           fieldPaths:
+             - .metadata.annotations.[cert-manager.io/inject-ca-from]
+           options:
+             delimiter: '/'
+             index: 1
+             create: true
+         - select:
+             kind: MutatingWebhookConfiguration
+           fieldPaths:
+             - .metadata.annotations.[cert-manager.io/inject-ca-from]
+           options:
+             delimiter: '/'
+             index: 1
+             create: true
+         - select:
+             kind: CustomResourceDefinition
+           fieldPaths:
+             - .metadata.annotations.[cert-manager.io/inject-ca-from]
+           options:
+             delimiter: '/'
+             index: 1
+             create: true
+     - source: # Add cert-manager annotation to the webhook Service
+         kind: Service
+         version: v1
+         name: webhook-service
+         fieldPath: .metadata.name # namespace of the service
+       targets:
+         - select:
+             kind: Certificate
+             group: cert-manager.io
+             version: v1
+           fieldPaths:
+             - .spec.dnsNames.0
+             - .spec.dnsNames.1
+           options:
+             delimiter: '.'
+             index: 0
+             create: true
+     - source:
+         kind: Service
+         version: v1
+         name: webhook-service
+         fieldPath: .metadata.namespace # namespace of the service
+       targets:
+         - select:
+             kind: Certificate
+             group: cert-manager.io
+             version: v1
+           fieldPaths:
+             - .spec.dnsNames.0
+             - .spec.dnsNames.1
+           options:
+             delimiter: '.'
+             index: 1
+             create: true
     ```
 
 1. Deploy
@@ -738,19 +861,24 @@ cert-manager-webhook-6668fbb57d-44sjk     1/1     Running   0          39s
     ```
     ```bash
     kubectl logs -n foo-controller-kubebuilder-system -l control-plane=controller-manager
-    2021-12-13T00:17:03.690Z        INFO    controller-runtime.webhook      serving webhook server  {"host": "", "port": 9443}
-    2021-12-13T00:17:03.689Z        INFO    starting metrics server {"path": "/metrics"}
-    2021-12-13T00:17:03.690Z        INFO    controller-runtime.certwatcher  Starting certificate watcher
-    I1213 00:17:03.706798       1 leaderelection.go:258] successfully acquired lease foo-controller-kubebuilder-system/78433493.example.com
-    2021-12-13T00:17:03.706Z        DEBUG   events  Normal  {"object": {"kind":"ConfigMap","namespace":"foo-controller-kubebuilder-system","name":"78433493.example.com","uid":"c91a0b2f-068b-4865-8406-63a6068aa168","apiVersion":"v1","resourceVersion":"262417"}, "reason": "LeaderElection", "message": "foo-controller-kubebuilder-controller-manager-6cc4ff948-pbgwq_809926f5-3199-4f77-be93-af9a7758bf04 became leader"}
-    2021-12-13T00:17:03.707Z        DEBUG   events  Normal  {"object": {"kind":"Lease","namespace":"foo-controller-kubebuilder-system","name":"78433493.example.com","uid":"7f92a5a8-86d0-40f5-8bc7-3f86ab1ebe13","apiVersion":"coordination.k8s.io/v1","resourceVersion":"262418"}, "reason": "LeaderElection", "message": "foo-controller-kubebuilder-controller-manager-6cc4ff948-pbgwq_809926f5-3199-4f77-be93-af9a7758bf04 became leader"}
-    2021-12-13T00:17:03.790Z        INFO    controller.foo  Starting EventSource    {"reconciler group": "samplecontroller.example.com", "reconciler kind": "Foo", "source": "kind source: /, Kind="}
-    2021-12-13T00:17:03.790Z        INFO    controller.foo  Starting EventSource    {"reconciler group": "samplecontroller.example.com", "reconciler kind": "Foo", "source": "kind source: /, Kind="}
-    2021-12-13T00:17:03.790Z        INFO    controller.foo  Starting Controller     {"reconciler group": "samplecontroller.example.com", "reconciler kind": "Foo"}
-    2021-12-13T00:17:03.891Z        INFO    controller.foo  Starting workers        {"reconciler group": "samplecontroller.example.com", "reconciler kind": "Foo", "worker count": 1}
+    2023-09-26T23:24:37Z    INFO    controller-runtime.certwatcher  Updated current TLS certificate
+    2023-09-26T23:24:37Z    INFO    controller-runtime.webhook      Serving webhook server  {"host": "", "port": 9443}
+    2023-09-26T23:24:37Z    INFO    controller-runtime.certwatcher  Starting certificate watcher
+    I0926 23:24:37.521249       1 leaderelection.go:250] attempting to acquire leader lease foo-controller-kubebuilder-system/78433493.example.com...
+    I0926 23:24:37.543740       1 leaderelection.go:260] successfully acquired lease foo-controller-kubebuilder-system/78433493.example.com
+    2023-09-26T23:24:37Z    DEBUG   events  foo-controller-kubebuilder-controller-manager-679b458967-kpxts_afc3db92-c403-445c-ae60-02d0288fad33 became leader     {"type": "Normal", "object": {"kind":"Lease","namespace":"foo-controller-kubebuilder-system","name":"78433493.example.com","uid":"bc33e17a-5070-41d3-891e-34e93df99437","apiVersion":"coordination.k8s.io/v1","resourceVersion":"157918"}, "reason": "LeaderElection"}
+    2023-09-26T23:24:37Z    INFO    Starting EventSource    {"controller": "foo", "controllerGroup": "samplecontroller.example.com", "controllerKind": "Foo", "source": "kind source: *v1alpha1.Foo"}
+    2023-09-26T23:24:37Z    INFO    Starting EventSource    {"controller": "foo", "controllerGroup": "samplecontroller.example.com", "controllerKind": "Foo", "source": "kind source: *v1.Deployment"}
+    2023-09-26T23:24:37Z    INFO    Starting Controller     {"controller": "foo", "controllerGroup": "samplecontroller.example.com", "controllerKind": "Foo"}
+    2023-09-26T23:24:37Z    INFO    Starting workers        {"controller": "foo", "controllerGroup": "samplecontroller.example.com", "controllerKind": "Foo", "worker count": 1}
     ```
 
-1. Apply `config/samples/samplecontroller_v1alpha1_foo.yaml` without `replicas: 1`
+1. Apply `config/samples/samplecontroller_v1alpha1_foo.yaml` without `replicas`
+
+    ```yaml
+    spec:
+      # replicas: 2 # to check default admission webhook
+    ```
 
     ```
     kubectl apply -f config/samples/samplecontroller_v1alpha1_foo.yaml
@@ -758,11 +886,6 @@ cert-manager-webhook-6668fbb57d-44sjk     1/1     Running   0          39s
     ```
 
 1. Check replica is 1
-
-    ```yaml
-    spec:
-      # replicas: 2 # to check default admission webhook
-    ```
 
     ```
     kubectl get foo foo-sample -o jsonpath='{.spec.replicas}'
@@ -792,6 +915,7 @@ make undeploy
 ```
 
 ```
+kubectl delete -f https://github.com/jetstack/cert-manager/releases/download/v1.13.0/cert-manager.yaml
 ```
 ## 7. Add new API version
 
@@ -802,27 +926,59 @@ kubebuilder create api --group samplecontroller --version v1beta1 --kind Foo --r
 <details><summary>result</summary>
 
 ```
-Writing kustomize manifests for you to edit...
-Writing scaffold for you to edit...
-api/v1beta1/foo_types.go
-Update dependencies:
+INFO[0000] Writing kustomize manifests for you to edit...
+INFO[0000] Writing scaffold for you to edit...
+INFO[0000] api/v1beta1/foo_types.go
+INFO[0000] api/v1beta1/groupversion_info.go
+INFO[0000] Update dependencies:
 $ go mod tidy
-Running make:
+INFO[0000] Running make:
 $ make generate
-/Users/masato-naka/repos/nakamasato/foo-controller-kubebuilder/bin/controller-gen object:headerFile="hack/boilerplate.go.txt" paths="./..."
+test -s /Users/m.naka/repos/nakamasato/foo-controller-kubebuilder/bin/controller-gen && /Users/m.naka/repos/nakamasato/foo-controller-kubebuilder/bin/controller-gen --version | grep -q v0.13.0 || \
+        GOBIN=/Users/m.naka/repos/nakamasato/foo-controller-kubebuilder/bin go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.13.0
+/Users/m.naka/repos/nakamasato/foo-controller-kubebuilder/bin/controller-gen object:headerFile="hack/boilerplate.go.txt" paths="./..."
 Next: implement your new API and generate the manifests (e.g. CRDs,CRs) with:
 $ make manifests
 ```
 
 </details>
 
+
+※ At this point, if you run `make manifests`, you'll see `github.com/nakamasato/foo-controller-kubebuilder/api/v1alpha1:-: CRD for Foo.samplecontroller.example.com has no storage version` error as it's not implemented.
+
 ## 8. Create Conversion Webhook
 
 Conversion: API version compatibility
 
-`apps/v1alpha`のResourceがApplyされても、`apps/v1`のResourceがApplyされても、KuberntesのControllerがそれをReconcileし、同じ機能・効果を提供するObjectを保証してくれます。これは、Kubernetesが裏側でConversionを実行することで、Multi Version間の差分を吸収してくれているからです。
+Whether applying `apps/v1alpha` or `apps/v1`, Kubernetes controllers ensure to provide objects with the same functionality through reconciliation. This is achieved by Kubernetes performing conversions among multiple versions in the background.
 
-1. Copy `v1alpha1/foo_types.go` to `v1beta1/foo_types.go`
+In controller-runtime, we can utilize [conversion](https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.16.0/pkg/conversion) package for implementation.
+
+[Convertible](https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.16.0/pkg/conversion#Convertible) interface:
+
+```go
+type Convertible interface {
+	runtime.Object
+	ConvertTo(dst Hub) error
+	ConvertFrom(src Hub) error
+}
+```
+
+[Hub](https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.16.0/pkg/conversion#Hub) interface:
+
+```go
+type Hub interface {
+	runtime.Object
+	Hub()
+}
+```
+
+> Hub marks that a given type is the hub type for conversion. This means that all conversions will first convert to the hub type, then convert from the hub type to the destination type. All types besides the hub type should implement Convertible.
+
+
+Implementation steps:
+
+1. Copy `api/v1alpha1/foo_types.go` to `api/v1beta1/foo_types.go`
     ```diff
     diff api/v1{alpha1,beta1}/foo_types.go
     17c17
@@ -832,18 +988,33 @@ Conversion: API version compatibility
     ```
 1. Add new field for conversion to `FooSpec`
 
-    ```go
-    type FooSpec struct {
-        ...
-	    // +kubebuilder:validation:Optional
-
-	    // the new field for conversion
-	    Foo string `json:"foo"`
-    }
+    ```diff
+      type FooSpec struct {
+         ...
+    +    // +kubebuilder:validation:Optional
+    +    // the new field for conversion
+    +    Foo string `json:"foo"`
+      }
     ```
 
 1. Add `//+kubebuilder:storageversion` to `alphav1/foo_types.go`
     > Since we’ll have more than one version, we’ll need to mark a storage version. This is the version that the Kubernetes API server uses to store our data.
+
+    ```diff
+      //+kubebuilder:object:root=true
+      //+kubebuilder:subresource:status
+    + //+kubebuilder:storageversion
+
+      // Foo is the Schema for the foos API
+      type Foo struct {
+      	metav1.TypeMeta   `json:",inline"`
+      	metav1.ObjectMeta `json:"metadata,omitempty"`
+
+      	Spec   FooSpec   `json:"spec,omitempty"`
+      	Status FooStatus `json:"status,omitempty"`
+      }
+    ```
+
 1. Implement conversion.
     1. `api/v1alpha1/foo_conversion.go`:
         ```go
@@ -851,32 +1022,56 @@ Conversion: API version compatibility
 
         func (*Foo) Hub() {}
         ```
-    1. `api/v1beta1/foo_conversion.go`:
+    1. `api/v1beta1/foo_conversion.go`: `dst.Spec.Foo = src.Spec.DeploymentName` this is the main point of the conversion.
         ```go
         package v1beta1
 
         import (
-	        "sigs.k8s.io/controller-runtime/pkg/conversion"
+        	"sigs.k8s.io/controller-runtime/pkg/conversion"
 
-	        samplecontrollerv1alpha1 "github.com/nakamasato/foo-controller-kubebuilder/api/v1alpha1"
+        	samplecontrollerv1alpha1 "github.com/nakamasato/foo-controller-kubebuilder/api/v1alpha1"
         )
 
         func (src *Foo) ConvertTo(dstRaw conversion.Hub) error { // v1beta1 -> v1alpha1
-            ...
+        	dst := dstRaw.(*samplecontrollerv1alpha1.Foo)
+
+        	// ObjectMeta
+        	dst.ObjectMeta = src.ObjectMeta
+
+        	// Spec
+        	dst.Spec.DeploymentName = src.Spec.DeploymentName
+        	dst.Spec.Replicas = src.Spec.Replicas
+
+        	// Status
+        	dst.Status.AvailableReplicas = src.Status.AvailableReplicas
+
+        	return nil
         }
 
-        func (dst *Foo) ConvertFrom(srcRaw conversion.Hub) error { // v1alpha1 -> v1beta1
-            ...
-            // just copy DeploymentName value to Foo
-	        dst.Spec.Foo = src.Spec.DeploymentName
-            ...
+        func (dst *Foo) ConvertFrom (srcRaw conversion.Hub) error { // v1alpha1 -> v1beta1
+        	src := srcRaw.(*samplecontrollerv1alpha1.Foo)
+
+        	// Set the new field in v1beta1 from existing field in v1alphav1
+        	dst.Spec.Foo = src.Spec.DeploymentName
+
+        	// ObjectMeta
+        	dst.ObjectMeta = src.ObjectMeta
+
+        	// Spec
+        	dst.Spec.DeploymentName = src.Spec.DeploymentName
+        	dst.Spec.Replicas = src.Spec.Replicas
+
+        	// Status
+        	dst.Status.AvailableReplicas = src.Status.AvailableReplicas
+
+        	return nil
         }
         ```
 1. Update `config/crd/kustomization.yaml`
     ```yaml
-    patchesStrategicMerge:
-    - patches/webhook_in_foos.yaml
-    - patches/cainjection_in_foos.yaml
+    patches:
+    - path: patches/webhook_in_foos.yaml
+    - path: patches/cainjection_in_foos.yaml
     ```
 
 1. Build & Push
@@ -885,7 +1080,11 @@ Conversion: API version compatibility
     export IMG=nakamasato/foo-controller:kubebuilder-conversion
     make docker-build docker-push
     ```
-1. (install cert-manager if uninstalled)
+1. Install cert-manager if uninstalled
+    ```
+    kubectl create ns cert-manager
+    kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.13.0/cert-manager.yaml
+    ```
 1. Deploy
 
     ```
@@ -920,6 +1119,14 @@ Conversion: API version compatibility
 
     </details>
 
+    Sometimes the following error occurs:
+
+    ```
+    Error from server (InternalError): error when creating "STDIN": Internal error occurred: failed calling webhook "webhook.cert-manager.io": failed to call webhook: Post "https://cert-manager-webhook.cert-manager.svc:443/mutate?timeout=10s": tls: failed to verify certificate: x509: certificate signed by unknown authority
+    Error from server (InternalError): error when creating "STDIN": Internal error occurred: failed calling webhook "webhook.cert-manager.io": failed to call webhook: Post "https://cert-manager-webhook.cert-manager.svc:443/mutate?timeout=10s": tls: failed to verify certificate: x509: certificate signed by unknown authority
+    make: *** [deploy] Error 1
+    ```
+
 1. Check
 
     ```
@@ -934,11 +1141,27 @@ Conversion: API version compatibility
     kubectl logs -n foo-controller-kubebuilder-system -l control-plane=controller-manager -f
     ```
 
-    `conversion webhook enabled` <- cannot see
+    ```
+    2023-09-28T00:11:32Z    INFO    controller-runtime.certwatcher  Updated current TLS certificate
+    2023-09-28T00:11:32Z    INFO    controller-runtime.webhook      Serving webhook server  {"host": "", "port": 9443}
+    2023-09-28T00:11:32Z    INFO    controller-runtime.certwatcher  Starting certificate watcher
+    I0928 00:11:32.273264       1 leaderelection.go:250] attempting to acquire leader lease foo-controller-kubebuilder-system/78433493.example.com...
+    I0928 00:11:32.277137       1 leaderelection.go:260] successfully acquired lease foo-controller-kubebuilder-system/78433493.example.com
+    2023-09-28T00:11:32Z    DEBUG   events  foo-controller-kubebuilder-controller-manager-8c9494f56-jt25m_fcc12c04-d25a-44a7-84ec-6bbb69419093 became leader      {"type": "Normal", "object": {"kind":"Lease","namespace":"foo-controller-kubebuilder-system","name":"78433493.example.com","uid":"382e67cb-33f3-455f-a673-8bd7ef2f88de","apiVersion":"coordination.k8s.io/v1","resourceVersion":"244175"}, "reason": "LeaderElection"}
+    2023-09-28T00:11:32Z    INFO    Starting EventSource    {"controller": "foo", "controllerGroup": "samplecontroller.example.com", "controllerKind": "Foo", "source": "kind source: *v1alpha1.Foo"}
+    2023-09-28T00:11:32Z    INFO    Starting EventSource    {"controller": "foo", "controllerGroup": "samplecontroller.example.com", "controllerKind": "Foo", "source": "kind source: *v1.Deployment"}
+    2023-09-28T00:11:32Z    INFO    Starting Controller     {"controller": "foo", "controllerGroup": "samplecontroller.example.com", "controllerKind": "Foo"}
+    2023-09-28T00:11:32Z    INFO    Starting workers        {"controller": "foo", "controllerGroup": "samplecontroller.example.com", "controllerKind": "Foo", "worker count": 1}
+    ```
 
-1. Check: apply `betav1` -> get `betav1` and `alphav1`
+1. Check: apply `v1beta1` -> get `v1beta1` and `v1alpha1`
 
-    Apply `betav1`
+    Apply `v1beta1`
+
+    ```yaml
+    spec:
+      deploymentName: "foo-sample"
+    ```
 
     ```
     kubectl apply -f config/samples/samplecontroller_v1beta1_foo.yaml
@@ -949,27 +1172,27 @@ Conversion: API version compatibility
 
     ```
     kubectl get foo.v1beta1.samplecontroller.example.com foo-sample -o jsonpath='{.spec}'
-    {"deploymentName":"example-foo","foo":"example-foo","replicas":1}%
+    {"deploymentName":"foo-sample","foo":"foo-sample","replicas":1}
     ```
 
     Check `alpha1` -> no foo
 
     ```
     kubectl get foo.v1alpha1.samplecontroller.example.com foo-sample -o jsonpath='{.spec}'
-    {"deploymentName":"example-foo","replicas":1}
+    {"deploymentName":"foo-sample","replicas":1}
     ```
 
-1. Check: apply `alphav1` -> get `betav1` and `alphav1`
+1. Check: apply `v1alpha1` -> get `v1beta1` and `v1alpha1`
 
     ```
     kubectl apply -f config/samples/samplecontroller_v1alpha1_foo.yaml
     foo.samplecontroller.example.com/foo-sample created
 
     kubectl get foo.v1alpha1.samplecontroller.example.com foo-sample -o jsonpath='{.spec}'
-    {"deploymentName":"sample-foo","replicas":1}%
+    {"deploymentName":"foo-sample","replicas":2}
 
     kubectl get foo.v1beta1.samplecontroller.example.com foo-sample -o jsonpath='{.spec}'
-    {"deploymentName":"sample-foo","foo":"sample-foo","replicas":1}%
+    {"deploymentName":"foo-sample","foo":"foo-sample","replicas":2}
     ```
 
 1. Clean up
@@ -977,5 +1200,5 @@ Conversion: API version compatibility
     ```
     kubectl delete -f config/samples/samplecontroller_v1beta1_foo.yaml
     make undeploy
-    kubectl delete -f https://github.com/jetstack/cert-manager/releases/download/v1.6.1/cert-manager.yaml
+    kubectl delete -f https://github.com/jetstack/cert-manager/releases/download/v1.13.0/cert-manager.yaml
     ```

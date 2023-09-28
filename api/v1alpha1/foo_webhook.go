@@ -1,5 +1,5 @@
 /*
-Copyright 2021 nakamasato.
+Copyright 2023 nakamasato.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
+	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 )
 
 // log is for logging in this package.
@@ -57,25 +58,25 @@ func (r *Foo) Default() {
 var _ webhook.Validator = &Foo{}
 
 // ValidateCreate implements webhook.Validator so a webhook will be registered for the type
-func (r *Foo) ValidateCreate() error {
+func (r *Foo) ValidateCreate() (admission.Warnings, error) {
 	foolog.Info("validate create", "name", r.Name)
 
 	return r.validateFoo()
 }
 
 // ValidateUpdate implements webhook.Validator so a webhook will be registered for the type
-func (r *Foo) ValidateUpdate(old runtime.Object) error {
+func (r *Foo) ValidateUpdate(old runtime.Object) (admission.Warnings, error) {
 	foolog.Info("validate update", "name", r.Name)
 
 	return r.validateFoo()
 }
 
 // ValidateDelete implements webhook.Validator so a webhook will be registered for the type
-func (r *Foo) ValidateDelete() error {
+func (r *Foo) ValidateDelete() (admission.Warnings, error) {
 	foolog.Info("validate delete", "name", r.Name)
 
 	// TODO(user): fill in your validation logic upon object deletion.
-	return nil
+	return nil, nil
 }
 
 func (r *Foo) validateDeploymentName() *field.Error {
@@ -86,13 +87,13 @@ func (r *Foo) validateDeploymentName() *field.Error {
 	return nil
 }
 
-func (r *Foo) validateFoo() error {
+func (r *Foo) validateFoo() (admission.Warnings, error) {
 	var allErrs field.ErrorList
 	if err := r.validateDeploymentName(); err != nil {
 		allErrs = append(allErrs, err)
 	}
 	if len(allErrs) == 0 {
-		return nil
+		return nil, nil
 	}
-	return apierrors.NewInvalid(schema.GroupKind{Group: "samplecontroller.example.com", Kind: "Foo"}, r.Name, allErrs)
+	return nil, apierrors.NewInvalid(schema.GroupKind{Group: "samplecontroller.example.com", Kind: "Foo"}, r.Name, allErrs)
 }
