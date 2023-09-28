@@ -9,4 +9,4 @@ metadata:
     app.kubernetes.io/created-by: foo-controller-kubebuilder
   name: foo-sample
 spec:
-  # TODO(user): Add fields here
+  deploymentName: "foo-sample"
